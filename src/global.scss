@@ -1,0 +1,54 @@
+// Loop to generate font classes from 10px to 60px in multiples of 2
+@for $i from 10 through 60 {
+  @if ($i % 2 == 0) {
+    .font-#{$i} {
+      font-size: #{$i}px;
+
+      // Media query for mobile devices (768px and below) if font size is above 16px
+      @if $i > 16 {
+        @media (max-width: 768px) {
+          font-size: #{floor($i * 0.8)}px; // Reduce the font size by 20% for mobile
+        }
+      }
+    }
+  }
+}
+
+.sidabar-icon {
+  .lucide {
+    color: black;
+  }
+}
+.sidabar-icon-active {
+  .lucide {
+    color: white;
+  }
+}
+
+.nav-padding {
+  padding-top: 2.1rem !important;
+  @media (max-width: 768px) {
+    padding-top: 0rem !important;
+  }
+}
+
+.rmdp-container {
+  width: 100%;
+}
+
+.card-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  gap: 15px;
+
+  .icon-wrapper {
+    background: hsl(var(--org-card));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    width: 138px;
+    min-height: 88px;
+    height: 100%;
+  }
+}

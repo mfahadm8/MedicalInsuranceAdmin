@@ -1,0 +1,150 @@
+.accordion-container {
+  .relative {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  height: 45px;
+  width: 100%;
+}
+
+.accordion-trigger {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  position: absolute;
+  right: 0;
+  top: 7px;
+  cursor: pointer;
+}
+
+.accordion-content {
+  .card {
+    padding: 24px 12px;
+    margin-top: -14px;
+  }
+}
+
+.accordion-inner-header {
+  width: 100%;
+}
+
+.status-accordion-icon {
+  margin-left: auto;
+}
+
+.h-46 {
+  height: 46.5px;
+}
+
+.buildings {
+  .card-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    gap: 15px;
+
+    .icon-wrapper {
+      background: hsl(var(--org-card));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 10px;
+      width: 138px;
+      min-height: 88px;
+      height: 100%;
+    }
+  }
+}
+
+.no-records {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+
+  .btn-groups {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+}
+
+.h-auto {
+  height: auto;
+}
+
+.line-container {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  padding: 24px 0;
+
+  & button {
+    position: absolute;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.dashed-line {
+  width: 100%;
+  height: 2px;
+  background-image: linear-gradient(
+    to right,
+    hsl(var(--primary)) 33%,
+    transparent 0%
+  );
+  background-position: bottom;
+  background-size: 10px 2px;
+  background-repeat: repeat-x;
+  position: absolute;
+  top: 50%;
+  left: 0;
+}
+
+.icon-wrapper-2 {
+  background: hsl(var(--org-card));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  width: 120px;
+  min-height: 88px;
+  height: 100%;
+
+  svg {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+.accordion-button {
+  border: none !important;
+  text-decoration: underline;
+  padding: 0;
+  height: auto;
+  font-weight: 300;
+
+  &:hover {
+    background: transparent !important;
+  }
+}
+
+.fourth-list {
+  font-weight: 300;
+  padding: 18px 0;
+}
