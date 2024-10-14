@@ -51,6 +51,8 @@ import { formatDate } from "@/components/utilities/date-formatter";
 import { useAuth } from "@/components/utilities/AuthProvider";
 import Logo from "@/assets/NavLogo.svg";
 import { DocumentModal } from "./modal";
+import { UploadDialog } from "./bulk-import";
+
 import { StatusBadge } from "./status-badge";
 function downloadFile(url: string, fileName: string) {
   const link = document.createElement("a");
@@ -455,7 +457,7 @@ export default function Dashboard() {
                   </PopoverTrigger>
                   <PopoverContent>
                     <div className="flex  max-md:flex-col max-md:justify-end items-center gap-4 max-md:pt-5  ">
-                      <Button
+                      {/* <Button
                         variant="outline"
                         className="w-full"
                         onClick={() => {}}
@@ -463,7 +465,8 @@ export default function Dashboard() {
                         {" "}
                         <Download className="mr-2 h-4 w-4 rotate-90" />{" "}
                         Reconcile Data
-                      </Button>
+                      </Button> */}
+                      <UploadDialog />
 
                       <Button className="w-full" onClick={() => {}}>
                         {" "}
@@ -483,11 +486,12 @@ export default function Dashboard() {
                   className="h-10 w-[150px] lg:w-[250px]"
                 />
 
-                <Button variant="outline" className="w-full" onClick={() => {}}>
+                {/* <Button variant="outline" className="w-full" onClick={() => {}}>
                   {" "}
                   <Download className="mr-2 h-4 w-4 rotate-180" /> Reconcile
                   Data
-                </Button>
+                </Button> */}
+                <UploadDialog />
 
                 <Button className="w-full" onClick={() => {}}>
                   {" "}
