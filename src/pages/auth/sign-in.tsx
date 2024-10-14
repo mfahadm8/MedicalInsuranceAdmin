@@ -1,6 +1,5 @@
 import { UserAuthForm } from "./components/user-auth-form";
 import Logo from "@/assets/Logo.svg";
-import LogoDark from "@/assets/NavLogo.svg";
 import LogoLight from "@/assets/LogoLight.svg";
 import { ThemeProvider } from "@/components/utilities/ThemeProvider";
 import { AuthContextProvider } from "@/components/utilities/AuthProvider";

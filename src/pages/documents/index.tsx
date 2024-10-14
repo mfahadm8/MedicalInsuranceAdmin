@@ -139,7 +139,7 @@ export default function Dashboard() {
     {
       refetchOnMount: true, // Prevent refetching when remounting
       enabled: true,
-      select: (response) => response.data.data,
+      select: (response) => response.data,
     }
   );
 
@@ -362,7 +362,7 @@ export default function Dashboard() {
 
     {
       title: "Incomplete Documentation",
-      value: documentsSummary?.Mandatory?.incorrect_documents,
+      value: documentsSummary?.pending_dependents,
       icon: <ClipboardList size={36} />,
       status: "yellow",
       desc: "Dependents with incomplete or incorrect documents.",
@@ -376,6 +376,8 @@ export default function Dashboard() {
       desc: "Dependents yet to start the documentation process.",
     },
   ];
+
+  console.log(documentsSummary);
 
   return (
     <Layout>
