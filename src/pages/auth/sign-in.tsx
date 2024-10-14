@@ -12,7 +12,7 @@ export default function SignIn() {
     <ThemeProvider>
       <AuthContextProvider>
         <div className="container relative   h-svh flex  items-center justify-center lg:max-w-none   login p-6">
-          <div className="relative hidden h-full flex-col   p-10 text-white  lg:flex md:w-[50%]">
+          <div className="relative hidden h-full flex-col   p-10 text-white  lg:flex md:w-[57%]">
             <img
               src={LogoLight}
               alt=""
@@ -20,7 +20,7 @@ export default function SignIn() {
               className="relative -top-10"
             />
           </div>
-          <div className=" w-full md:w-[50%] bg-white h-full m-auto flex items-center  rounded-[30px]">
+          <div className=" w-full md:w-[43%] bg-white h-full m-auto flex items-center  rounded-[30px]">
             <div className="mx-auto  flex w-full flex-col justify-center  space-y-2 sm:w-[350px] md:w-[454px]">
               <div className="flex flex-col space-y-2 text-left items-center">
                 <div className="flex flex-col justify-center items-center text-foreground">

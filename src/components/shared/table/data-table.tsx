@@ -34,7 +34,6 @@ interface Filters {
     value: string;
     label: string;
   }[];
-  hide: boolean;
 }
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

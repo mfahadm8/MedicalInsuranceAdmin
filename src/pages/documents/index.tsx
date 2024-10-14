@@ -92,17 +92,29 @@ export default function Dashboard() {
 
   const onTabChange = (value: string) => {
     setFilterTab(value);
-    // if (value === "all") {
-    //   setFilteredData(documents);
-    // } else if (value === "pending") {
-    //   setFilteredData(
-    //     documents.filter((item: any) => item.status === "Pending Approval")
-    //   );
-    // } else if (value === "active") {
-    //   setFilteredData(
-    //     documents.filter((item: any) => item.status === "Active")
-    //   );
-    // }
+    if (value === "all") {
+      setFilteredData(documents);
+    } else if (value === "awaiting") {
+      setFilteredData(
+        documents.filter(
+          (item: any) => item.aggregated_doc_status === "No Documents"
+        )
+      );
+    } else if (value === "incomplete") {
+      setFilteredData(
+        documents.filter(
+          (item: any) =>
+            item.aggregated_doc_status === "Partially Complete" ||
+            item.aggregated_doc_status === "Incomplete"
+        )
+      );
+    } else if (value === "completed") {
+      setFilteredData(
+        documents.filter(
+          (item: any) => item.aggregated_doc_status === "Complete"
+        )
+      );
+    }
   };
 
   // /documents/summary
@@ -142,9 +154,9 @@ export default function Dashboard() {
     setFilterValue(event.target.value);
     const newFilteredData = documents.filter(
       (doc: Document) =>
-        doc?.dependentName?.toLowerCase()?.includes(value) ||
-        doc?.dependentRelation?.toLowerCase()?.includes(value) ||
-        doc?.ssnLast4?.toString()?.includes(value)
+        doc?.first_name?.toLowerCase()?.includes(value) ||
+        doc?.relationship?.toLowerCase()?.includes(value) ||
+        doc?.ssn?.toString()?.includes(value)
     );
 
     setFilteredData(newFilteredData);
@@ -249,7 +261,7 @@ export default function Dashboard() {
     {
       accessorKey: "aggregated_doc_status",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Aggregated Status" />
+        <DataTableColumnHeader column={column} title=" Status" />
       ),
       cell: ({ row }) => {
         const status = row.getValue("aggregated_doc_status") as string;
@@ -257,6 +269,7 @@ export default function Dashboard() {
         return (
           <span>
             <PriorityBadge
+              className="whitespace-nowrap"
               variant={
                 status == "Invalid"
                   ? "high"
@@ -265,7 +278,7 @@ export default function Dashboard() {
                   : status == "Partially Complete"
                   ? "medium"
                   : status == "Incomplete"
-                  ? "medium"
+                  ? "high"
                   : "secondary"
               }
             >
@@ -273,6 +286,9 @@ export default function Dashboard() {
             </PriorityBadge>
           </span>
         );
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
       },
     },
     {
@@ -335,29 +351,29 @@ export default function Dashboard() {
     },
   ];
 
-  ///tasks
   const cards: CardType[] = [
     {
-      title: "Users with Complete Documents",
+      title: "Fully Documented Dependents",
       value: documentsSummary?.complete_documents,
       icon: <ClipboardCheck size={36} />,
       status: "green",
-      desc: "Complete Documents",
+      desc: "Dependents with all required documents verified.",
     },
 
     {
-      title: "Users with one or pending documents",
+      title: "Incomplete Documentation",
       value: documentsSummary?.Mandatory?.incorrect_documents,
       icon: <ClipboardList size={36} />,
       status: "yellow",
-      desc: "Incorrect Documents",
+      desc: "Dependents with incomplete or incorrect documents.",
     },
+
     {
-      title: "Submissions with Incorrect Documents",
+      title: "Awaiting Submission",
       value: documentsSummary?.pending_documents,
       icon: <ClipboardX size={36} />,
       status: "red",
-      desc: "Pending Dependent",
+      desc: "Dependents yet to start the documentation process.",
     },
   ];
 
@@ -389,11 +405,10 @@ export default function Dashboard() {
                         className="font-30 font-bold"
                         style={{ color: ColorArr[item.status] }}
                       >
-                        {item.value}
-                        {item.total ? `/${item.total}` : "0"}
+                        {item.value || 0}
                       </div>
-                      <p className="font-18 font-semibold">{item.desc}</p>
-                      <p>{item.title}</p>
+                      <p className="font-18 font-semibold">{item.title}</p>
+                      <p>{item.desc}</p>
                     </div>
                   </StatusCard>
                 );
@@ -401,24 +416,23 @@ export default function Dashboard() {
             </div>
           )}
 
-          {documentsSummary && (
-            <div className=" flex items-center mt-6">
-              <div className="w-full border-dashed border-2"></div>
-              <Button
-                variant="outline"
-                className="mx-5"
-                onClick={() => setHide(!hide)}
-              >
-                {!hide ? (
-                  <ChevronUp className="mr-2 h-5 w-5" />
-                ) : (
-                  <ChevronDown className="mr-2 h-5 w-5" />
-                )}{" "}
-                {hide ? "Show Summary" : "Hide Summary"}
-              </Button>
-              <div className="w-full border-dashed border-2"></div>
-            </div>
-          )}
+          <div className=" flex items-center mt-6">
+            <div className="w-full border-dashed border-2"></div>
+            <Button
+              variant="outline"
+              className="mx-5"
+              onClick={() => setHide(!hide)}
+            >
+              {!hide ? (
+                <ChevronUp className="mr-2 h-5 w-5" />
+              ) : (
+                <ChevronDown className="mr-2 h-5 w-5" />
+              )}{" "}
+              {hide ? "Show Summary" : "Hide Summary"}
+            </Button>
+            <div className="w-full border-dashed border-2"></div>
+          </div>
+
           <Card className="bg-card p-6  mt-6 rounded-xl">
             <div className="mb-2 gap-4 flex-wrap sm:flex items-start justify-between space-y-2  ">
               <div className="">
@@ -489,13 +503,16 @@ export default function Dashboard() {
               >
                 <div className="">
                   <TabsList>
-                    <TabsTrigger value="all">All Submissions</TabsTrigger>
+                    <TabsTrigger value="all">All</TabsTrigger>
 
-                    <TabsTrigger value="pending" className="">
-                      Pending Docs
+                    <TabsTrigger value="incomplete" className="">
+                      Incomplete Docs
                     </TabsTrigger>
-                    <TabsTrigger value="rejected" className="">
-                      Incorrect Documents
+                    <TabsTrigger value="awaiting" className="">
+                      Awaiting Submission
+                    </TabsTrigger>
+                    <TabsTrigger value="completed" className="">
+                      Completed
                     </TabsTrigger>
                   </TabsList>
 
@@ -527,7 +544,7 @@ export default function Dashboard() {
           </Card>
           {rowData && open && (
             <DocumentModal
-              setRowData={() => setRowData()}
+              setRowData={() => setRowData(undefined)}
               rowData={rowData}
               open={open}
               setOpen={setOpen}

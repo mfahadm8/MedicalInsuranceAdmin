@@ -142,11 +142,10 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   return (
     <div className={cn("grid gap-6", className)} {...props}>
       {!resetPassword && !nextStep && !showVerify && (
-        <Card className=" shadow-sm rounded-md border p-5 ">
-          <h2 className="font-22 mb-2 font-semibold text-foreground">Login</h2>
+        <Card className=" shadow-sm rounded-[32px] border p-6 ">
+          {/* <h2 className="font-22 mb-2 font-semibold text-foreground">Login</h2>
           <p className="font-16 mb-4 text-muted-foreground">
-            Enter your email below to login to your account.
-          </p>
+           </p> */}
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>

@@ -24,61 +24,27 @@ export default function Tasks({
   setResetRowSelectionFn: (data: any) => void;
   isLoading: boolean;
 }) {
-  const statusOptions = [
-    { label: "Active", value: "Active" },
-    { label: "Pending Approval", value: "Pending Approval" },
-    { label: "Rejected", value: "Rejected" },
-    { label: "Expired", value: "Expired" },
-    { label: "Archived", value: "Archived" },
+  const documentStatuses = [
+    { label: "No Documents", value: "No Documents" },
+    { label: "Invalid", value: "Invalid" },
+    { label: "Incomplete", value: "Incomplete" },
+    { label: "Complete", value: "Complete" },
+    { label: "Partially Complete", value: "Partially Complete" },
   ];
-
-  const { data: docTypes } = useQuery(
-    "get-docTypes",
-    () => api.get(`/documents/document-types`),
-    {
-      refetchOnMount: false, // Prevent refetching when remounting
-      staleTime: 600000, // 10 minutes in milliseconds
-      cacheTime: 600000, // 10 minutes in milliseconds
-
-      select: (response) => response.data.data,
-      onSuccess: (data) => {},
-    }
-  );
 
   const [filtersDetail, setFiltersDetail] = React.useState<Label[]>([
     {
-      title: "Document Type",
-      accessorKey: "documentType",
-      labels: docTypes
-        ? docTypes.map((item: any) => {
-            return { label: item?.name, value: item?.name };
-          })
-        : [],
+      title: "Document Status",
+      accessorKey: "aggregated_doc_status",
+      labels: documentStatuses,
     },
     {
-      title: "Status",
-      accessorKey: "status",
-      labels: statusOptions,
+      title: "Relationship",
+      accessorKey: "relationship",
+      labels: useUniqueOptions(filteredData, "relationship"),
     },
   ]);
-  React.useEffect(() => {
-    setFiltersDetail([
-      {
-        title: "Document Type",
-        accessorKey: "documentType",
-        labels: docTypes
-          ? docTypes.map((item: any) => {
-              return { label: item?.name, value: item?.name };
-            })
-          : [],
-      },
-      {
-        title: "Status",
-        accessorKey: "status",
-        labels: statusOptions,
-      },
-    ]);
-  }, [docTypes]);
+
   const filteringEnabledCol: [] = [];
   console.log(filtersDetail);
   return (
