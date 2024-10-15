@@ -57,20 +57,11 @@ import { StatusBadge } from "./status-badge";
 function downloadFile(url: string, fileName: string) {
   const link = document.createElement("a");
   link.href = url;
-  link.setAttribute("download", fileName); // Set the desired file name
-  link.setAttribute("target", "_blank");
+  link.setAttribute("download", "doc.pdf"); // Set the desired file name
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 }
-// const formatDate = (dateString: string) => {
-//   const options: Intl.DateTimeFormatOptions = {
-//     year: "numeric",
-//     month: "long",
-//     day: "numeric",
-//   };
-//   return new Date(dateString).toLocaleDateString(undefined, options);
-// };
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -144,6 +135,16 @@ export default function Dashboard() {
       select: (response) => response.data,
     }
   );
+  const { data: validationsData } = useQuery(
+    "get-validations",
+    () => api.get("/required-fields"),
+    {
+      refetchOnMount: true, // Prevent refetching when remounting
+      enabled: true,
+      select: (response) => response.data,
+    }
+  );
+  console.log(validationsData);
 
   useEffect(() => {
     if (documents) {
@@ -163,15 +164,14 @@ export default function Dashboard() {
 
     setFilteredData(newFilteredData);
   };
-
   const { mutate: downloadDoc } = useMutation(
     (url: string) =>
-      api.post(`/documents/download`, {
-        url: url,
+      api.get(`/document-presigned-url`, {
+        params: { s3_uri: url }, // Pass as query param
       }),
     {
       onSuccess: (data: any) => {
-        downloadFile(data.data.data, "document.png");
+        downloadFile(data.presigned_url, "document");
         toast({
           title: "Document downloaded successfully.",
           duration: 2000,
@@ -180,6 +180,7 @@ export default function Dashboard() {
       },
     }
   );
+
   const toTitleCase = (key: string) => {
     return key
       .replace(/([A-Z])/g, " $1") // Add space before capital letters
@@ -303,11 +304,11 @@ export default function Dashboard() {
         return (
           <div className="flex flex-wrap gap-2">
             {Object.entries(documents).map(([docType, docList]) =>
-              docList.map((doc) => (
+              docList.map((doc: any) => (
                 <StatusBadge
                   key={doc.document_name}
                   // className="px-2 py-1 bg-gray-200 rounded-full cursor-pointer whitespace-nowrap"
-                  onClick={() => window.open(doc.document_url, "_blank")}
+                  // onClick={() => window.open(doc.document_url, "_blank")}
                   variant={
                     doc.status == "Invalid"
                       ? "high"
@@ -322,7 +323,10 @@ export default function Dashboard() {
                 >
                   <div className="flex justify-between items-center cursor-pointer">
                     <p>{toTitleCase(docType)}</p>
-                    <SquareArrowOutUpRight className="w-4 h-4 ml-4" />
+                    <SquareArrowOutUpRight
+                      className="w-4 h-4 ml-4"
+                      onClick={() => downloadDoc(doc.document_url)}
+                    />
                   </div>
                 </StatusBadge>
               ))
@@ -491,7 +495,11 @@ export default function Dashboard() {
                   <Download className="mr-2 h-4 w-4 rotate-180" /> Reconcile
                   Data
                 </Button> */}
-                <UploadDialog />
+                {validationsData && (
+                  <UploadDialog
+                    required_fields={validationsData?.required_fields}
+                  />
+                )}
 
                 <Button className="w-full" onClick={() => {}}>
                   {" "}

@@ -38,7 +38,7 @@ import api from "@/components/utilities/api";
 interface ValidationRules {
   [key: string]: (value: string) => boolean;
 }
-export function UploadDialog() {
+export function UploadDialog({ required_fields }: any) {
   const queryClient = useQueryClient();
   const { theme } = useTheme();
   const [open, setOpen] = useState(false);
@@ -100,59 +100,20 @@ export function UploadDialog() {
     }
   };
 
-  const validation = [
-    {
-      key: "firstName",
+  const validation = required_fields.map((item: any) => {
+    return {
+      key: item.name,
       isRequired: true,
-      pattern: "^[a-zA-Z]+$", // Alphabetical characters only
-      unique: false,
-    },
-    {
-      key: "lastName",
-      isRequired: true,
-      pattern: "^[a-zA-Z]+$", // Alphabetical characters only
-      unique: false,
-    },
-    {
-      key: "email",
-      isRequired: true,
-      pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", // Standard email pattern
+      pattern: item.regex, // Alphabetical characters only
       unique: true,
-    },
-    {
-      key: "mobile",
-      isRequired: true,
-      pattern: "^\\+?\\d{1,4}[\\s-]?\\d{10,12}$", // Allows optional country code with spaces or hyphens
-      unique: false,
-    },
-  ];
-
+    };
+  });
   const validationRules: ValidationRules = {
-    "First Name": (value: string) => {
-      const field = validation.find((f) => f.key === "firstName");
+    "Social Security Number": (value: string) => {
+      const field = validation.find(
+        (f: any) => f.key === "Social Security Number"
+      );
       if (field?.isRequired && value.length === 0) return false;
-      if (field?.pattern && !new RegExp(field.pattern).test(value))
-        return false;
-      return true;
-    },
-    "Last Name": (value: string) => {
-      const field = validation.find((f) => f.key === "lastName");
-      if (field?.isRequired && value.length === 0) return false;
-      if (field?.pattern && !new RegExp(field.pattern).test(value))
-        return false;
-      return true;
-    },
-    Email: (value: string) => {
-      const field = validation.find((f) => f.key === "email");
-      if (field?.isRequired && value.length === 0) return false;
-      if (field?.pattern && !new RegExp(field.pattern).test(value))
-        return false;
-      return true;
-    },
-    Mobile: (value: string) => {
-      const field = validation.find((f) => f.key === "mobile");
-      if (field?.isRequired && value.length === 0) return false;
-      // Fixed regex for mobile to handle country codes and spacing/hyphens
       if (field?.pattern && !new RegExp(field.pattern).test(value))
         return false;
       return true;
@@ -163,7 +124,7 @@ export function UploadDialog() {
     row: Record<string, string>
   ): { isValid: boolean; invalidFields: string[] } => {
     const invalidFields = Object.keys(validationRules).filter((key) => {
-      return true;
+      return !validationRules[key](row[key]);
     });
 
     return {
@@ -178,12 +139,14 @@ export function UploadDialog() {
     const lines = csvData.split("\n").filter((line) => line.trim() !== "");
 
     // Define allowed headers and check for required headers
-    const allowedHeaders = ["First Name", "Last Name", "Email", "Mobile"];
+    const allowedHeaders = required_fields.map((item: any) => item.name);
     const headers = lines[0]
       .split(",")
       .map((header) => header.trim().replace(/^"|"$/g, ""));
 
-    const missingHeaders = allowedHeaders.filter((allowedHeader) => false);
+    const missingHeaders = allowedHeaders.filter(
+      (allowedHeader: any) => !headers.includes(allowedHeader)
+    );
 
     if (missingHeaders.length > 0) {
       setError(`Missing required headers: ${missingHeaders.join(", ")}`);
@@ -191,11 +154,13 @@ export function UploadDialog() {
       setError(""); // Clear any previous error
     }
 
-    const filteredHeaders = headers.filter((header) => true);
+    const filteredHeaders = headers.filter((header) =>
+      allowedHeaders.includes(header)
+    );
 
     // If no allowed headers are found, return an empty array
     if (filteredHeaders.length === 0) {
-      // return [];
+      return [];
     }
 
     // Initialize an incrementing counter for unique IDs
@@ -220,7 +185,7 @@ export function UploadDialog() {
       // Validate the row
       const validationResult = validateRow(obj);
       if (!validationResult.isValid) {
-        // errorRows.push(index);
+        errorRows.push(index);
       }
 
       return obj;
@@ -280,12 +245,11 @@ export function UploadDialog() {
       cell: ({ row }: any) => {
         const value = row.getValue(header);
         let isValid = true;
-        if (enableEdit) {
-          isValid = validationRules[header]
-            ? validationRules[header](value)
-            : true;
-        }
-
+        // if (enableEdit) {
+        isValid = validationRules[header]
+          ? validationRules[header](value)
+          : true;
+        // }
         const cellClassName = isValid
           ? ""
           : "bg-[#DF5F5F] py-3 px-5 rounded-md text-white	";
@@ -329,17 +293,26 @@ export function UploadDialog() {
   }, [edit, enableEdit]);
 
   // Function to validate the entire dataset
+  // Function to validate the entire dataset
   const validateData = (data: Record<string, string>[]) => {
     const errorRows: number[] = [];
+    const seenValues: Set<string> = new Set();
+
     data.forEach((row, index) => {
       const validationResult = validateRow(row);
-      if (!validationResult.isValid) {
+
+      // Convert the row's values to a unique string to check for duplicates
+      const rowValuesString = row["Social Security Number"]; // You can customize this separator if needed
+
+      if (!validationResult.isValid || seenValues.has(rowValuesString)) {
         errorRows.push(index);
+      } else {
+        seenValues.add(rowValuesString);
       }
     });
+
     return errorRows;
   };
-
   useEffect(() => {
     tableData && setErrorRows(validateData(tableData));
   }, [tableData]);
@@ -363,7 +336,7 @@ export function UploadDialog() {
     return (
       <div className="border rounded-md p-4">
         {errorRows.length > 0 && (
-          <div className="flex justify-center hidden">
+          <div className="flex justify-center">
             <div>
               <p className="font-24 font-bold w-full text-center">
                 Check Column Values
@@ -486,29 +459,25 @@ export function UploadDialog() {
   }
 
   const { mutate: bulkUpload } = useMutation(
-    ["users-bulk-upload"],
-    () =>
-      api.post(
-        `users/upload/bulk?orgId=${selectData?.orgName}&buildingId=${selectData?.building}`,
-        csvToFormData(csv)
-      ),
+    ["bulk-upload"],
+    () => api.get(`/reconcile-data`, csvToFormData(csv)),
     {
       onSuccess: (res: any) => {
-        if (res.data.success) {
+        if (res.data) {
           toast({
-            title: "Bulk upload successfull.",
+            title: res.data,
             duration: 2000,
             variant: "success",
           });
+          setOpen(!open);
+          queryClient.invalidateQueries("get-docs");
         } else {
           toast({
-            title: res.data.message || "Upload failded.",
+            title: res.data || "Upload failded.",
             duration: 2000,
             variant: "destructive",
           });
         }
-
-        // queryClient.invalidateQueries("get-licenses");
       },
     }
   );
