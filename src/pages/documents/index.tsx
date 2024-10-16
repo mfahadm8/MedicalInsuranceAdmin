@@ -54,10 +54,30 @@ import { DocumentModal } from "./modal";
 import { UploadDialog } from "./bulk-import";
 
 import { StatusBadge } from "./status-badge";
+const headers = [
+  { label: "First Name", key: "first_name" },
+  { label: "Last Name", key: "last_name" },
+  { label: "Relationship", key: "relationship" },
+  { label: "SSN", key: "ssn" },
+  { label: "Employee SSN", key: "employee_ssn" },
+  { label: "Phone Number", key: "phone_number" },
+  { label: "Benefit", key: "benefit" },
+  { label: "Serial", key: "serial" },
+  { label: "Dependent Type", key: "dependent_type" },
+  { label: "Reconciliation ID", key: "reconciliation_id" },
+  { label: "Coverage Level", key: "coverage_level" },
+  { label: "Start Date", key: "start_date" },
+  { label: "Date of Birth", key: "dob" },
+
+  { label: "Date of Creation", key: "date_of_creation" },
+];
+
 function downloadFile(url: string, fileName: string) {
   const link = document.createElement("a");
   link.href = url;
-  link.setAttribute("download", "doc.pdf"); // Set the desired file name
+  // "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/TEIDE.JPG/440px-TEIDE.JPG";
+  link.setAttribute("download", fileName); // Set the desired file name
+  link.setAttribute("target", "_blank");
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -171,7 +191,7 @@ export default function Dashboard() {
       }),
     {
       onSuccess: (data: any) => {
-        downloadFile(data.presigned_url, "document");
+        downloadFile(data.data.presigned_url, data.data.file_name);
         toast({
           title: "Document downloaded successfully.",
           duration: 2000,
@@ -232,6 +252,9 @@ export default function Dashboard() {
         <DataTableColumnHeader column={column} title="Relationship" />
       ),
       cell: ({ row }) => <div>{row.getValue("relationship")}</div>,
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
     },
     {
       accessorKey: "phone_number",
@@ -270,7 +293,7 @@ export default function Dashboard() {
         const status = row.getValue("aggregated_doc_status") as string;
         // const status = "Partially Complete";
         return (
-          <span>
+          <span className="00">
             <PriorityBadge
               className="whitespace-nowrap"
               variant={
@@ -370,7 +393,7 @@ export default function Dashboard() {
       title: "Incomplete Documentation",
       value: documentsSummary?.pending_dependents,
       icon: <ClipboardList size={36} />,
-      status: "yellow",
+      status: "orange",
       desc: "Dependents with incomplete or incorrect documents.",
     },
 
@@ -490,21 +513,30 @@ export default function Dashboard() {
                   className="h-10 w-[150px] lg:w-[250px]"
                 />
 
-                {/* <Button variant="outline" className="w-full" onClick={() => {}}>
-                  {" "}
-                  <Download className="mr-2 h-4 w-4 rotate-180" /> Reconcile
-                  Data
-                </Button> */}
                 {validationsData && (
                   <UploadDialog
                     required_fields={validationsData?.required_fields}
                   />
                 )}
-
-                <Button className="w-full" onClick={() => {}}>
-                  {" "}
-                  <Download className="mr-2 h-4 w-4" /> Export Complete Data
-                </Button>
+                <CSVLink
+                  data={filteredData}
+                  headers={headers}
+                  filename={`dependent-info.csv`}
+                >
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      toast({
+                        title: "Exported successfully.",
+                        duration: 2000,
+                        variant: "success",
+                      });
+                    }}
+                  >
+                    {" "}
+                    <Download className="mr-2 h-4 w-4" /> Export Complete Data
+                  </Button>
+                </CSVLink>
               </div>
             </div>
             <div className="relative max-md:mt-4">

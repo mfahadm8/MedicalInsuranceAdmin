@@ -144,24 +144,24 @@ export function UploadDialog({ required_fields }: any) {
       .split(",")
       .map((header) => header.trim().replace(/^"|"$/g, ""));
 
-    const missingHeaders = allowedHeaders.filter(
-      (allowedHeader: any) => !headers.includes(allowedHeader)
-    );
+    // const missingHeaders = allowedHeaders.filter(
+    //   (allowedHeader: any) => !headers.includes(allowedHeader)
+    // );
 
-    if (missingHeaders.length > 0) {
-      setError(`Missing required headers: ${missingHeaders.join(", ")}`);
-    } else {
-      setError(""); // Clear any previous error
-    }
+    // if (missingHeaders.length > 0) {
+    //   setError(`Missing required headers: ${missingHeaders.join(", ")}`);
+    // } else {
+    //   setError(""); // Clear any previous error
+    // }
 
-    const filteredHeaders = headers.filter((header) =>
-      allowedHeaders.includes(header)
-    );
+    // const filteredHeaders = headers.filter((header) =>
+    //   allowedHeaders.includes(header)
+    // );
 
-    // If no allowed headers are found, return an empty array
-    if (filteredHeaders.length === 0) {
-      return [];
-    }
+    // // If no allowed headers are found, return an empty array
+    // if (filteredHeaders.length === 0) {
+    //   return [];
+    // }
 
     // Initialize an incrementing counter for unique IDs
     let counter = 0;
@@ -178,7 +178,7 @@ export function UploadDialog({ required_fields }: any) {
       obj.id = `row-${Date.now()}-${counter++}`;
 
       // Attach filtered headers and values to the object
-      filteredHeaders.forEach((header, idx) => {
+      headers.forEach((header, idx) => {
         obj[header] = values[idx] || ""; // Handle case where value might be undefined
       });
 
@@ -261,6 +261,7 @@ export function UploadDialog({ required_fields }: any) {
                 ? "w-0 hidden"
                 : "h-11 w-full flex items-center pl-3 mr-1 "
             }
+            id={row.original.id}
           >
             {!(edit?.header === header && edit.row.id == row.original.id) ? (
               <div
@@ -291,6 +292,16 @@ export function UploadDialog({ required_fields }: any) {
   useEffect(() => {
     tableData && setColumns(generateColumns(tableData));
   }, [edit, enableEdit]);
+  useEffect(() => {
+    if (edit?.row?.id) {
+      console.log("first");
+      const element = document.getElementById(edit?.row?.id);
+      debugger;
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  }, [edit?.row?.id, enableEdit]);
 
   // Function to validate the entire dataset
   // Function to validate the entire dataset
@@ -336,14 +347,17 @@ export function UploadDialog({ required_fields }: any) {
     return (
       <div className="border rounded-md p-4">
         {errorRows.length > 0 && (
-          <div className="flex justify-center">
-            <div>
-              <p className="font-24 font-bold w-full text-center">
-                Check Column Values
-              </p>
-              <p className="font-14 w-full text-center mt-2">
-                Enter the correct values for the highlighted column
-              </p>
+          <div className="flex justify-start w-full">
+            <div className="flex justify-between  w-full">
+              <div>
+                <p className="font-24 font-bold w-full text-start">
+                  Check Column Values
+                </p>
+                <p className="font-14 w-full text-start mt-2">
+                  Enter the correct values for the highlighted column
+                </p>
+              </div>
+
               <Card className="rounded-md bg-[#DF5F5F] flex  mt-4 justify-between px-6 py-3 w-fit">
                 <div className="flex">
                   <TriangleAlert color="white" className="h-5 w-5 mr-4" />
@@ -389,7 +403,10 @@ export function UploadDialog({ required_fields }: any) {
             </Button>
           </div>
         </div>
-        <div className="grid overflow-auto  relative " ref={divRef}>
+        <div
+          className="grid overflow-auto  relative *: h-[500px] "
+          ref={divRef}
+        >
           {tableData && (
             <DataTable
               data={tableData}
@@ -398,6 +415,8 @@ export function UploadDialog({ required_fields }: any) {
               filteringEnabledCol={[]}
               isPagSticky
               errorRows={enableEdit ? errorRows || [] : []}
+              rowsPerPage={150}
+              hidePage
             />
           )}
         </div>
@@ -500,7 +519,7 @@ export function UploadDialog({ required_fields }: any) {
       <DialogContent
         className={
           tableData
-            ? "md:max-w-[1440px]   w-11/12 "
+            ? "md:max-w-[1440px]   w-11/12  "
             : " md:max-w-[550px] w-11/12  "
         }
       >

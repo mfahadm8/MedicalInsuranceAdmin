@@ -48,6 +48,7 @@ interface DataTableProps<TData, TValue> {
   isDataEmpty?: () => JSX.Element;
   errorRows?: Number[];
   quotaLeftFilter?: boolean;
+  hidePage?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -63,6 +64,7 @@ export function DataTable<TData, TValue>({
   errorRows,
   quotaLeftFilter,
   isDataEmpty,
+  hidePage,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -187,19 +189,21 @@ export function DataTable<TData, TValue>({
             )}
           </TableBody>
         </Table>
-        <div
-          className={
-            isPagSticky
-              ? "border-t py-8 px-3  table-pagination-sticky"
-              : "border-t py-8 px-3"
-          }
-        >
-          <DataTablePagination
-            table={table}
-            rowsPerPage={rowsPerPage}
-            isPagSticky={isPagSticky}
-          />
-        </div>
+        {
+          <div
+            className={
+              isPagSticky
+                ? "border-t py-8 px-3  table-pagination-sticky "
+                : "border-t py-8 px-3"
+            }
+          >
+            <DataTablePagination
+              table={table}
+              rowsPerPage={rowsPerPage}
+              isPagSticky={isPagSticky}
+            />
+          </div>
+        }
       </div>
     </div>
   );
