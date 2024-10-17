@@ -102,15 +102,17 @@ export function UploadDialog({ required_fields }: any) {
 
   const validation = required_fields.map((item: any) => {
     return {
-      key: "SSN",
+      key: "Social Security Number",
       isRequired: true,
       pattern: item.regex, // Alphabetical characters only
       unique: true,
     };
   });
   const validationRules: ValidationRules = {
-    SSN: (value: string) => {
-      const field = validation.find((f: any) => f.key === "SSN");
+    "Social Security Number": (value: string) => {
+      const field = validation.find(
+        (f: any) => f.key === "Social Security Number"
+      );
       if (field?.isRequired && value?.length === 0) return false;
       if (field?.pattern && !new RegExp(field?.pattern).test(value))
         return false;
@@ -250,7 +252,7 @@ export function UploadDialog({ required_fields }: any) {
             {!(edit?.header === header && edit.row.id == row.original.id) ? (
               <div
                 className={`cell ${cellClassName} flex gap-3 ${
-                  header === "SSN" ? "w-[200px]" : "w-auto"
+                  header === "Social Security Number" ? "w-[200px]" : "w-auto"
                 }`}
                 onClick={() => {
                   enableEdit && setEdit({ header: header, row: row.original });
@@ -294,26 +296,27 @@ export function UploadDialog({ required_fields }: any) {
   }, [edit?.row?.id, enableEdit, tableData, selectRowId]);
 
   // Function to validate the entire dataset
-  // Function to validate the entire dataset
   const validateData = (data: Record<string, string>[]) => {
     const errorRows: number[] = [];
-    const seenValues: Set<string> = new Set();
+    const seenSSNs: Set<string> = new Set();
 
     data.forEach((row, index) => {
       const validationResult = validateRow(row);
 
-      // Convert the row's values to a unique string to check for duplicates
-      const rowValuesString = row["SSN"]; // You can customize this separator if needed
+      // Get the Social Security Number (SSN) value from the row
+      const ssn = row["Social Security Number"]; // Or "SSN" if that's the key
 
-      if (!validationResult.isValid || seenValues.has(rowValuesString)) {
-        errorRows.push(index);
+      // Check for duplicate SSNs or invalid validation result
+      if (!validationResult.isValid || seenSSNs.has(ssn)) {
+        errorRows.push(index); // Track the index of the invalid/duplicate row
       } else {
-        seenValues.add(rowValuesString);
+        seenSSNs.add(ssn); // Add the SSN to the set of seen SSNs
       }
     });
 
     return errorRows;
   };
+
   useEffect(() => {
     tableData && setErrorRows(validateData(tableData));
   }, [tableData]);
