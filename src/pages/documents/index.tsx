@@ -519,7 +519,7 @@ export default function Dashboard() {
                   />
                 )}
                 <CSVLink
-                  data={filteredData}
+                  data={rows || filteredData}
                   headers={headers}
                   filename={`dependent-info.csv`}
                 >
@@ -534,7 +534,10 @@ export default function Dashboard() {
                     }}
                   >
                     {" "}
-                    <Download className="mr-2 h-4 w-4" /> Export Complete Data
+                    <Download className="mr-2 h-4 w-4" />
+                    {rows && rows.length > 0
+                      ? "Export Selected Rows"
+                      : "Export Complete Data"}
                   </Button>
                 </CSVLink>
               </div>

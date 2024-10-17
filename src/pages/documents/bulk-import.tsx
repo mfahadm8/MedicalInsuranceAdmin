@@ -49,7 +49,7 @@ export function UploadDialog({ required_fields }: any) {
   const [errorRows, setErrorRows] = useState<Number[]>([]);
   const [fileName, setFileName] = useState("");
   const [next, setNext] = useState(true);
-  const [selectData, setSelectData] = useState<any>();
+  const [selectRowId, setselectRowId] = useState<any>();
   const [csv, setCsv] = useState<any>();
 
   const [columns, setColumns] = useState<
@@ -102,19 +102,17 @@ export function UploadDialog({ required_fields }: any) {
 
   const validation = required_fields.map((item: any) => {
     return {
-      key: item.name,
+      key: "SSN",
       isRequired: true,
       pattern: item.regex, // Alphabetical characters only
       unique: true,
     };
   });
   const validationRules: ValidationRules = {
-    "Social Security Number": (value: string) => {
-      const field = validation.find(
-        (f: any) => f.key === "Social Security Number"
-      );
-      if (field?.isRequired && value.length === 0) return false;
-      if (field?.pattern && !new RegExp(field.pattern).test(value))
+    SSN: (value: string) => {
+      const field = validation.find((f: any) => f.key === "SSN");
+      if (field?.isRequired && value?.length === 0) return false;
+      if (field?.pattern && !new RegExp(field?.pattern).test(value))
         return false;
       return true;
     },
@@ -139,29 +137,12 @@ export function UploadDialog({ required_fields }: any) {
     const lines = csvData.split("\n").filter((line) => line.trim() !== "");
 
     // Define allowed headers and check for required headers
-    const allowedHeaders = required_fields.map((item: any) => item.name);
     const headers = lines[0]
       .split(",")
       .map((header) => header.trim().replace(/^"|"$/g, ""));
 
-    // const missingHeaders = allowedHeaders.filter(
-    //   (allowedHeader: any) => !headers.includes(allowedHeader)
-    // );
-
-    // if (missingHeaders.length > 0) {
-    //   setError(`Missing required headers: ${missingHeaders.join(", ")}`);
-    // } else {
-    //   setError(""); // Clear any previous error
-    // }
-
-    // const filteredHeaders = headers.filter((header) =>
-    //   allowedHeaders.includes(header)
-    // );
-
-    // // If no allowed headers are found, return an empty array
-    // if (filteredHeaders.length === 0) {
-    //   return [];
-    // }
+    // Add 'No.' header at the beginning of headers array
+    headers.unshift("No.");
 
     // Initialize an incrementing counter for unique IDs
     let counter = 0;
@@ -174,18 +155,21 @@ export function UploadDialog({ required_fields }: any) {
         .map((value) => value.trim().replace(/^"|"$/g, ""));
       const obj: Record<string, string> = {};
 
+      // Attach the row number as the first value
+      obj["Row Number"] = (index + 1).toString();
+
       // Attach a unique ID to each object at the start
       obj.id = `row-${Date.now()}-${counter++}`;
 
       // Attach filtered headers and values to the object
-      headers.forEach((header, idx) => {
+      headers.slice(1).forEach((header, idx) => {
         obj[header] = values[idx] || ""; // Handle case where value might be undefined
       });
 
       // Validate the row
       const validationResult = validateRow(obj);
       if (!validationResult.isValid) {
-        errorRows.push(index);
+        errorRows.push(index + 1); // Use 1-based indexing for error rows
       }
 
       return obj;
@@ -261,14 +245,17 @@ export function UploadDialog({ required_fields }: any) {
                 ? "w-0 hidden"
                 : "h-11 w-full flex items-center pl-3 mr-1 "
             }
-            id={row.original.id}
+            id={row.original["Row Number"] <= 6 ? "" : row.original.id}
           >
             {!(edit?.header === header && edit.row.id == row.original.id) ? (
               <div
-                className={`cell ${cellClassName} flex gap-3`}
-                onClick={() =>
-                  enableEdit && setEdit({ header: header, row: row.original })
-                }
+                className={`cell ${cellClassName} flex gap-3 ${
+                  header === "SSN" ? "w-[200px]" : "w-auto"
+                }`}
+                onClick={() => {
+                  enableEdit && setEdit({ header: header, row: row.original });
+                  enableEdit && setselectRowId(row.original.id);
+                }}
               >
                 {value || "-"}
                 {!isValid && <span className="text-white"> ({"Invalid"})</span>}
@@ -294,14 +281,17 @@ export function UploadDialog({ required_fields }: any) {
   }, [edit, enableEdit]);
   useEffect(() => {
     if (edit?.row?.id) {
-      console.log("first");
-      const element = document.getElementById(edit?.row?.id);
-      debugger;
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      const timeoutId = setTimeout(() => {
+        const element = document.getElementById(edit?.row?.id);
+        if (element) {
+          element.scrollIntoView({ block: "start" });
+        }
+      }, 100); // 1000ms = 1 second
+
+      // Clean up the timeout if the effect is re-run or unmounted
+      return () => clearTimeout(timeoutId);
     }
-  }, [edit?.row?.id, enableEdit]);
+  }, [edit?.row?.id, enableEdit, tableData, selectRowId]);
 
   // Function to validate the entire dataset
   // Function to validate the entire dataset
@@ -313,7 +303,7 @@ export function UploadDialog({ required_fields }: any) {
       const validationResult = validateRow(row);
 
       // Convert the row's values to a unique string to check for duplicates
-      const rowValuesString = row["Social Security Number"]; // You can customize this separator if needed
+      const rowValuesString = row["SSN"]; // You can customize this separator if needed
 
       if (!validationResult.isValid || seenValues.has(rowValuesString)) {
         errorRows.push(index);
@@ -349,7 +339,7 @@ export function UploadDialog({ required_fields }: any) {
         {errorRows.length > 0 && (
           <div className="flex justify-start w-full">
             <div className="flex justify-between  w-full">
-              <div>
+              <div className="w-[400px] mr-4">
                 <p className="font-24 font-bold w-full text-start">
                   Check Column Values
                 </p>
@@ -364,7 +354,7 @@ export function UploadDialog({ required_fields }: any) {
                   <p className="font-1 text-white">
                     {" "}
                     {errorRows.map((item) => +item + Number(1)).join(", ")}{" "}
-                    row(s) contain(s) error
+                    row(s) contain(s) invalid or duplicate enteries
                   </p>
                 </div>
 
@@ -433,33 +423,31 @@ export function UploadDialog({ required_fields }: any) {
     }
   }, [tableData]);
 
-  const downloadSample = (url: string) => {
+  function downloadFile(url: string) {
     const link = document.createElement("a");
     link.href = url;
-    // link.setAttribute("download", filename);
-    // document.body.appendChild(link);
+    link.setAttribute("download", "Sample Dependent Verification File.csv"); // Set the desired file name
+    link.setAttribute("target", "_blank");
+    document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+  }
   const { mutate: downloadTemplate } = useMutation(
-    () => api.get(`users/bulk/download-template`),
+    () =>
+      api.get(`/document-presigned-url`, {
+        params: {
+          s3_uri:
+            "s3://verifies-reconciliation-docs-dev/sample-files/verifies/Sample Dependent Verification File.csv",
+        }, // Pass as query param
+      }),
     {
-      onSuccess: (res) => {
-        if (res.data.success) {
-          // queryClient.invalidateQueries("get-org-users");
-          downloadSample(res.data.data as string);
-          toast({
-            title: res.data.data.message || "Download Successfull.",
-            duration: 2000,
-            variant: "success",
-          });
-        } else {
-          toast({
-            title: res.data.message,
-            duration: 2000,
-            variant: "destructive",
-          });
-        }
+      onSuccess: (data: any) => {
+        downloadFile(data.data.presigned_url);
+        toast({
+          title: "Document downloaded successfully.",
+          duration: 2000,
+          variant: "success",
+        });
       },
     }
   );
@@ -507,8 +495,6 @@ export function UploadDialog({ required_fields }: any) {
       onOpenChange={() => {
         setOpen(!open);
         open && setTableData(undefined);
-        setNext("");
-        setSelectData("");
       }}
     >
       <DialogTrigger asChild>
